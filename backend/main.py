@@ -1,6 +1,9 @@
+import json
 import logging
 import signal
+import sys
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,9 +14,40 @@ from starlette.responses import Response
 from backend.api.chat import router as chat_router
 from backend.api.health import router as health_router
 from backend.api.models import router as models_router
+from backend.api.setup import router as setup_router
 from backend.config import settings
 from backend.content.loader import load_content_packs
 from backend.dependencies import get_database, get_fulltext, get_retriever, get_vectorstore
+
+
+# --- Structured JSON Logging ---
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        log = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname.lower(),
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info and record.exc_info[0]:
+            log["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log)
+
+
+def _configure_logging():
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(JSONFormatter())
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.addHandler(handler)
+    root.setLevel(logging.INFO)
+    # Quiet noisy libs
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+
+_configure_logging()
 
 logger = logging.getLogger("almanac")
 
@@ -102,6 +136,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(chat_router)
     app.include_router(models_router)
+    app.include_router(setup_router)
 
     # SPA static files (must be last — catches all non-API routes)
     # Mounted after frontend is built; in dev mode Vite handles this

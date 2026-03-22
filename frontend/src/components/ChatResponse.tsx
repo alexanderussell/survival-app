@@ -1,23 +1,35 @@
-interface Message {
+interface Source {
+  source: string;
+  section: string;
+}
+
+export interface Message {
   role: "user" | "assistant";
   content: string;
-  sources?: string[];
+  sources?: Source[];
   confidence?: number;
+  grounded?: boolean;
 }
 
 interface ChatResponseProps {
   message: Message;
 }
 
-function ConfidenceBadge({ score }: { score: number }) {
+function ConfidenceBadge({ score, grounded }: { score: number; grounded?: boolean }) {
   let color = "var(--danger)";
   let label = "Low confidence";
+
   if (score >= 0.7) {
     color = "var(--accent)";
     label = "High confidence";
   } else if (score >= 0.4) {
     color = "var(--warning)";
     label = "Medium confidence";
+  }
+
+  if (grounded === false) {
+    color = "var(--danger)";
+    label = "Ungrounded — verify independently";
   }
 
   return (
@@ -32,6 +44,30 @@ function ConfidenceBadge({ score }: { score: number }) {
     >
       {label} ({Math.round(score * 100)}%)
     </span>
+  );
+}
+
+function SourceList({ sources }: { sources: Source[] }) {
+  if (sources.length === 0) return null;
+
+  const unique = sources.filter(
+    (s, i, arr) => arr.findIndex((x) => x.source === s.source && x.section === s.section) === i
+  );
+
+  return (
+    <details style={{ marginTop: "4px" }}>
+      <summary style={{ fontSize: "11px", color: "var(--text-muted)", cursor: "pointer" }}>
+        {unique.length} source{unique.length > 1 ? "s" : ""}
+      </summary>
+      <ul style={{ margin: "4px 0 0 16px", fontSize: "12px", color: "var(--text-muted)" }}>
+        {unique.map((s, i) => (
+          <li key={i}>
+            {s.source}
+            {s.section ? ` — ${s.section}` : ""}
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
@@ -65,13 +101,9 @@ export function ChatResponse({ message }: ChatResponseProps) {
       </div>
 
       {!isUser && message.confidence !== undefined && (
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <ConfidenceBadge score={message.confidence} />
-          {message.sources && message.sources.length > 0 && (
-            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-              {message.sources.length} source{message.sources.length > 1 ? "s" : ""}
-            </span>
-          )}
+        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+          <ConfidenceBadge score={message.confidence} grounded={message.grounded} />
+          {message.sources && <SourceList sources={message.sources} />}
         </div>
       )}
     </div>
