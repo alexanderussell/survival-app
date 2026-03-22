@@ -5,8 +5,9 @@ import { Setup } from "./pages/Setup";
 import { Settings } from "./pages/Settings";
 import { Profile } from "./pages/Profile";
 import { ContextBuilder } from "./pages/ContextBuilder";
+import { ContextSummary } from "./pages/ContextSummary";
 
-type Page = "loading" | "setup" | "chat" | "settings" | "profile" | "context-builder";
+type Page = "loading" | "setup" | "chat" | "settings" | "profile" | "context-builder" | "context-summary";
 
 const SUGGESTED = [
   "How do I safely can tomatoes at home?",
@@ -157,6 +158,12 @@ export default function App() {
   if (page === "settings") return <Settings onBack={() => setPage("chat")} onProfile={() => setPage("profile")} />;
   if (page === "profile") return <Profile onBack={() => setPage("settings")} />;
   if (page === "context-builder") return <ContextBuilder onDone={() => setPage("chat")} />;
+  if (page === "context-summary") return (
+    <ContextSummary
+      onBack={() => setPage("chat")}
+      onRerun={() => setPage("context-builder")}
+    />
+  );
 
   return (
     <div className="app-layout">
@@ -171,9 +178,9 @@ export default function App() {
         </div>
         <div className="header-actions">
           <button
-            onClick={() => setPage("context-builder")}
+            onClick={() => setPage(hasProfile ? "context-summary" : "context-builder")}
             className={`header-btn ${hasProfile ? "has-profile" : ""}`}
-            title={hasProfile ? "Edit your profile" : "Add your context"}
+            title={hasProfile ? "View your context" : "Add your context"}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
