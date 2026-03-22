@@ -8,14 +8,14 @@
 
 :root {
   /* Field Desk palette — olive dark, amber accents, warm neutrals */
-  --bg: #0c0e0f;
-  --bg-elevated: #141718;
-  --bg-card: #191c1e;
-  --bg-input: #111415;
-  --text: #d4cfc4;
-  --text-bright: #ede8db;
-  --text-muted: #6b6860;
-  --text-dim: #3d3b36;
+  --bg: #0b0d0e;
+  --bg-elevated: #131617;
+  --bg-card: #181b1d;
+  --bg-input: #101213;
+  --text: #cdc8bd;
+  --text-bright: #eae5d8;
+  --text-muted: #7a756a;
+  --text-dim: #454039;
   --accent: #c8a84e;
   --accent-dim: rgba(200, 168, 78, 0.15);
   --sage: #5a7a5a;
