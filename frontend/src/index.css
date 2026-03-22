@@ -7,62 +7,183 @@
 }
 
 :root {
-  --bg: #0f1117;
-  --bg-secondary: #1a1d27;
-  --text: #e4e4e7;
-  --text-muted: #71717a;
-  --accent: #22c55e;
-  --accent-muted: #16a34a;
-  --border: #27272a;
-  --danger: #ef4444;
-  --warning: #eab308;
-  --radius: 8px;
+  /* Field Desk palette — olive dark, amber accents, warm neutrals */
+  --bg: #0c0e0f;
+  --bg-elevated: #141718;
+  --bg-card: #191c1e;
+  --bg-input: #111415;
+  --text: #d4cfc4;
+  --text-bright: #ede8db;
+  --text-muted: #6b6860;
+  --text-dim: #3d3b36;
+  --accent: #c8a84e;
+  --accent-dim: rgba(200, 168, 78, 0.15);
+  --sage: #5a7a5a;
+  --sage-bright: #7da07d;
+  --sage-dim: rgba(90, 122, 90, 0.2);
+  --danger: #b54a3f;
+  --danger-dim: rgba(181, 74, 63, 0.15);
+  --warning: #c8a84e;
+  --border: #252320;
+  --border-light: #322f2a;
+  --radius: 4px;
+
+  /* Typography */
+  --font-body: "DM Sans", -apple-system, sans-serif;
+  --font-mono: "DM Mono", "SF Mono", monospace;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle topographic background texture */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(90, 122, 90, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(200, 168, 78, 0.02) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
-/* Markdown rendering in assistant messages */
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-dim);
+  color: var(--text-bright);
+}
+
+/* ─── Markdown rendering ─── */
+.markdown-body {
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--text);
+}
 .markdown-body p {
-  margin-bottom: 0.75em;
+  margin-bottom: 0.8em;
 }
 .markdown-body p:last-child {
   margin-bottom: 0;
 }
 .markdown-body ul,
 .markdown-body ol {
-  margin: 0.5em 0 0.75em 1.5em;
+  margin: 0.4em 0 0.8em 1.25em;
 }
 .markdown-body li {
-  margin-bottom: 0.25em;
+  margin-bottom: 0.3em;
+}
+.markdown-body li::marker {
+  color: var(--text-dim);
 }
 .markdown-body strong {
-  color: var(--text);
+  color: var(--text-bright);
   font-weight: 600;
 }
 .markdown-body code {
-  background: rgba(255, 255, 255, 0.08);
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-  font-size: 0.9em;
+  font-family: var(--font-mono);
+  background: rgba(200, 168, 78, 0.08);
+  color: var(--accent);
+  padding: 0.15em 0.45em;
+  border-radius: 3px;
+  font-size: 0.88em;
+}
+.markdown-body pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin: 0.6em 0;
+  overflow-x: auto;
+}
+.markdown-body pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
 }
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3 {
-  margin: 0.75em 0 0.4em;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-bright);
+  margin: 1em 0 0.4em;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
-.markdown-body h1 { font-size: 1.2em; }
-.markdown-body h2 { font-size: 1.1em; }
-.markdown-body h3 { font-size: 1em; }
+.markdown-body h1 { font-size: 1.15em; }
+.markdown-body h2 { font-size: 1.05em; }
+.markdown-body h3 { font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.markdown-body blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+  color: var(--text-muted);
+  margin: 0.6em 0;
+}
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.2em 0;
+}
+
+/* ─── Animations ─── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -26,103 +26,175 @@ export function Settings({ onBack }: SettingsProps) {
   }, []);
 
   return (
-    <div style={{ padding: "24px", maxWidth: "640px", margin: "0 auto" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
-        <button onClick={onBack} style={styles.backButton}>
-          Back
-        </button>
-        <h1 style={{ fontSize: "20px", fontWeight: 600 }}>Settings</h1>
+    <div className="settings-page">
+      <div className="settings-inner">
+        {/* Header */}
+        <div className="settings-header">
+          <button onClick={onBack} className="settings-back" aria-label="Back">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <h1 className="settings-title">SETTINGS</h1>
+        </div>
+
+        {/* Model */}
+        <section className="settings-section">
+          <div className="section-label">MODEL</div>
+          {health?.model_loaded ? (
+            <div className="info-row">
+              <span className="info-key">Active</span>
+              <span className="info-val active">{health.model_name}</span>
+            </div>
+          ) : (
+            <div className="info-row">
+              <span className="info-key">Status</span>
+              <span className="info-val dim">Not loaded</span>
+            </div>
+          )}
+          {models?.models.map((m) => (
+            <div key={m.name} className="info-row">
+              <span className="info-key mono">{m.name}</span>
+              <span className="info-val dim">{m.size_mb} MB</span>
+            </div>
+          ))}
+        </section>
+
+        {/* Content */}
+        <section className="settings-section">
+          <div className="section-label">KNOWLEDGE BASE</div>
+          <div className="info-row">
+            <span className="info-key">Indexed chunks</span>
+            <span className="info-val">{health?.indexed_chunks ?? "—"}</span>
+          </div>
+          <div className="info-row">
+            <span className="info-key">Sources</span>
+            <span className="info-val dim">USDA, FEMA, Extension Service</span>
+          </div>
+        </section>
+
+        {/* About */}
+        <section className="settings-section">
+          <div className="section-label">ABOUT</div>
+          <div className="info-row">
+            <span className="info-key">Version</span>
+            <span className="info-val mono">0.1.0</span>
+          </div>
+          <div className="info-row">
+            <span className="info-key">License</span>
+            <span className="info-val mono">AGPL-3.0</span>
+          </div>
+          <div className="info-row">
+            <span className="info-key">Source</span>
+            <a
+              href="https://github.com/alexanderussell/survival-app"
+              target="_blank"
+              rel="noopener"
+              className="info-link"
+            >
+              github.com/alexanderussell/survival-app
+            </a>
+          </div>
+        </section>
       </div>
 
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Model</h2>
-        {health?.model_loaded ? (
-          <div style={styles.infoRow}>
-            <span style={{ color: "var(--accent)" }}>Active:</span>
-            <span>{health.model_name}</span>
-          </div>
-        ) : (
-          <p style={styles.muted}>No model loaded</p>
-        )}
-        {models?.models && models.models.length > 0 && (
-          <div style={{ marginTop: "8px" }}>
-            <p style={styles.muted}>Available models:</p>
-            {models.models.map((m) => (
-              <div key={m.name} style={styles.infoRow}>
-                <span>{m.name}</span>
-                <span style={styles.muted}>{m.size_mb} MB</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Content</h2>
-        <div style={styles.infoRow}>
-          <span>Indexed chunks:</span>
-          <span>{health?.indexed_chunks ?? "..."}</span>
-        </div>
-      </section>
-
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>About</h2>
-        <div style={styles.infoRow}>
-          <span>Version:</span>
-          <span>0.1.0</span>
-        </div>
-        <div style={styles.infoRow}>
-          <span>License:</span>
-          <span>AGPL-3.0</span>
-        </div>
-        <div style={{ marginTop: "8px" }}>
-          <a
-            href="https://github.com/alexanderussell/survival-app"
-            target="_blank"
-            rel="noopener"
-            style={{ color: "var(--accent)", fontSize: "14px" }}
-          >
-            GitHub Repository
-          </a>
-        </div>
-      </section>
+      <style>{`
+        .settings-page {
+          min-height: 100vh;
+          padding: 24px;
+          animation: fadeInUp 0.3s ease;
+        }
+        .settings-inner {
+          max-width: 520px;
+          margin: 0 auto;
+        }
+        .settings-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 32px;
+        }
+        .settings-back {
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--bg-elevated);
+          color: var(--text-muted);
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .settings-back:hover {
+          color: var(--text);
+          border-color: var(--border-light);
+        }
+        .settings-title {
+          font-family: var(--font-mono);
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          color: var(--text);
+        }
+        .settings-section {
+          margin-bottom: 24px;
+          background: var(--bg-elevated);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 16px 18px;
+        }
+        .section-label {
+          font-family: var(--font-mono);
+          font-size: 9.5px;
+          font-weight: 500;
+          color: var(--text-dim);
+          letter-spacing: 0.14em;
+          margin-bottom: 12px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid var(--border);
+        }
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 5px 0;
+          font-size: 13px;
+        }
+        .info-key {
+          color: var(--text-muted);
+        }
+        .info-key.mono {
+          font-family: var(--font-mono);
+          font-size: 11.5px;
+        }
+        .info-val {
+          color: var(--text);
+        }
+        .info-val.active {
+          color: var(--sage-bright);
+          font-family: var(--font-mono);
+          font-size: 12px;
+        }
+        .info-val.dim {
+          color: var(--text-dim);
+          font-size: 12px;
+        }
+        .info-val.mono {
+          font-family: var(--font-mono);
+          font-size: 12px;
+        }
+        .info-link {
+          font-family: var(--font-mono);
+          font-size: 11.5px;
+          color: var(--accent);
+          text-decoration: none;
+        }
+        .info-link:hover {
+          text-decoration: underline;
+        }
+      `}</style>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  section: {
-    marginBottom: "24px",
-    padding: "16px",
-    background: "var(--bg-secondary)",
-    borderRadius: "8px",
-    border: "1px solid var(--border)",
-  },
-  sectionTitle: {
-    fontSize: "14px",
-    fontWeight: 600,
-    color: "var(--text-muted)",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
-    marginBottom: "12px",
-  },
-  infoRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "4px 0",
-    fontSize: "14px",
-  },
-  muted: {
-    color: "var(--text-muted)",
-    fontSize: "13px",
-  },
-  backButton: {
-    padding: "6px 12px",
-    background: "var(--bg-secondary)",
-    color: "var(--text)",
-    border: "1px solid var(--border)",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "13px",
-  },
-};
