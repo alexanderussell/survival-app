@@ -21,7 +21,8 @@ export default function App() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
+    // Only poll during loading/setup — once on chat/settings/profile, stop
+    if (page !== "loading" && page !== "setup") return;
 
     const checkStatus = () => {
       fetch("/api/setup/status")
@@ -29,18 +30,17 @@ export default function App() {
         .then((data) => {
           if (data.status === "ready") {
             setPage("chat");
-            if (interval) clearInterval(interval);
-          } else {
+          } else if (page === "loading") {
             setPage("setup");
           }
         })
-        .catch(() => setPage("setup"));
+        .catch(() => {
+          if (page === "loading") setPage("setup");
+        });
     };
 
     checkStatus();
-    // Poll every 3s while on setup — catches auto-download completing on backend
-    interval = setInterval(checkStatus, 3000);
-
+    const interval = setInterval(checkStatus, 3000);
     return () => clearInterval(interval);
   }, [page]);
 
