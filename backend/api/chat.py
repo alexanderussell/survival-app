@@ -24,37 +24,36 @@ def _sse_event(event: str, **kwargs) -> dict:
     return {"event": event, "data": json.dumps({"event": event, **kwargs})}
 
 
-def _build_prompt(message: str, chunks: list, grounded: bool) -> str:
-    """Build the LLM prompt with system instructions and retrieved context."""
-    system = (
-        "You are a homesteading and off-grid living assistant. "
-        "Answer questions using ONLY the provided source material below. "
-        "If the sources don't contain relevant information, say so honestly. "
-        "If a question is outside homesteading topics, decline to answer. "
-        "Be practical, specific, and cite your sources."
-    )
+SYSTEM_PROMPT = (
+    "You are a homesteading and off-grid living assistant. "
+    "Answer questions using ONLY the provided source material. "
+    "If the sources don't contain relevant information, say so honestly. "
+    "If a question is outside homesteading topics, decline to answer. "
+    "Be practical and concise. Cite which source you used."
+)
 
+
+def _build_messages(message: str, chunks: list, grounded: bool) -> list[dict]:
+    """Build chat messages for the LLM's chat completion API."""
     if chunks and grounded:
         context_parts = []
-        for i, chunk in enumerate(chunks[:5], 1):
+        for i, chunk in enumerate(chunks[:3], 1):
             context_parts.append(
                 f"[Source {i}: {chunk.source} — {chunk.section}]\n{chunk.text}"
             )
         context = "\n\n".join(context_parts)
-        return (
-            f"{system}\n\n"
-            f"## Source Material\n\n{context}\n\n"
-            f"## Question\n\n{message}\n\n"
-            f"Answer based on the sources above:"
-        )
+        system = f"{SYSTEM_PROMPT}\n\nSource Material:\n\n{context}"
     else:
-        return (
-            f"{system}\n\n"
-            f"## Question\n\n{message}\n\n"
-            f"Note: No relevant source material was found for this question. "
-            f"Indicate that you cannot provide a well-sourced answer.\n\n"
-            f"Answer:"
+        system = (
+            f"{SYSTEM_PROMPT}\n\n"
+            "No relevant source material was found. "
+            "Let the user know you cannot provide a well-sourced answer."
         )
+
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": message},
+    ]
 
 
 async def _stream_response(
@@ -74,13 +73,13 @@ async def _stream_response(
             min_score=settings.min_retrieval_score,
         )
 
-        # Step 2: Build prompt with context
-        prompt = _build_prompt(message, chunks, grounded)
+        # Step 2: Build chat messages with context
+        messages = _build_messages(message, chunks, grounded)
 
-        # Step 3: Stream LLM response
-        async for token in llm.generate(
-            prompt=prompt,
-            max_tokens=512,
+        # Step 3: Stream LLM response via chat completion
+        async for token in llm.chat(
+            messages=messages,
+            max_tokens=2048,
             temperature=0.3,
         ):
             if await request.is_disconnected():

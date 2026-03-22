@@ -134,14 +134,30 @@ class Retriever:
         if not chunks:
             return [], 0.0, False
 
-        # Confidence based on best retrieval score
-        best_score = chunks[0].score
-        confidence = min(best_score * 3.0, 1.0)  # Scale up RRF scores
+        # Confidence scoring based on multiple signals:
+        # 1. How many chunks were retrieved (more = broader coverage)
+        # 2. Best dense score (direct semantic similarity)
+        # 3. Whether FTS5 also matched (both systems agree = higher confidence)
+        best_dense = max((c.dense_score for c in chunks), default=0.0)
+        has_sparse = any(c.sparse_score > 0 for c in chunks)
+        num_chunks = len(chunks)
 
-        # Safety floor check
-        grounded = best_score >= (min_score / 100.0)  # RRF scores are small
+        # Dense similarity is 1/(1+distance), typically 0.3-0.8 for relevant results
+        # Scale it to be the primary confidence signal
+        confidence = best_dense
 
-        return chunks, confidence, grounded
+        # Boost if both dense and sparse agree (hybrid confirmation)
+        if has_sparse and best_dense > 0.2:
+            confidence = min(confidence * 1.3, 1.0)
+
+        # Boost slightly for multiple relevant results
+        if num_chunks >= 3 and best_dense > 0.3:
+            confidence = min(confidence + 0.1, 1.0)
+
+        # Safety floor: is the best result good enough to ground a response?
+        grounded = best_dense >= min_score
+
+        return chunks, round(confidence, 2), grounded
 
     def get_sources(self, chunks: list[ScoredChunk]) -> list[SourceCitation]:
         """Extract unique source citations from chunks."""

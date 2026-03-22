@@ -148,6 +148,7 @@ class LLMManager:
                 model_path=str(model_path),
                 n_ctx=self._context_window,
                 n_threads=self._threads,
+                n_gpu_layers=-1,  # Offload all layers to GPU (Metal on macOS)
                 use_mmap=True,
                 use_mlock=False,
                 verbose=False,
@@ -201,6 +202,58 @@ class LLMManager:
                     asyncio.run_coroutine_threadsafe(queue.put(None), loop)
 
             loop.run_in_executor(self._executor, _blocking_generate)
+
+            while True:
+                token = await queue.get()
+                if token is None:
+                    break
+                yield token
+        finally:
+            sem.release()
+
+    async def chat(
+        self,
+        messages: list[dict],
+        max_tokens: int = 256,
+        temperature: float = 0.3,
+    ) -> AsyncGenerator[str, None]:
+        """Stream tokens using the chat completion API (proper chat template).
+
+        This ensures the model uses its trained chat format and knows
+        when to stop generating (no runaway Q&A loops).
+        """
+        if not self._llm:
+            raise RuntimeError("No model loaded")
+
+        sem = self._get_semaphore()
+        if not sem.locked():
+            await asyncio.wait_for(sem.acquire(), timeout=0.1)
+        else:
+            raise RuntimeError("Model is busy processing another request")
+
+        try:
+            queue: asyncio.Queue[Optional[str]] = asyncio.Queue()
+            loop = asyncio.get_running_loop()
+            llm = self._llm
+
+            def _blocking_chat():
+                try:
+                    for chunk in llm.create_chat_completion(
+                        messages=messages,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        stream=True,
+                    ):
+                        delta = chunk["choices"][0].get("delta", {})
+                        text = delta.get("content", "")
+                        if text:
+                            asyncio.run_coroutine_threadsafe(
+                                queue.put(text), loop
+                            )
+                finally:
+                    asyncio.run_coroutine_threadsafe(queue.put(None), loop)
+
+            loop.run_in_executor(self._executor, _blocking_chat)
 
             while True:
                 token = await queue.get()
