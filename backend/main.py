@@ -15,6 +15,7 @@ from backend.api.chat import router as chat_router
 from backend.api.context import router as context_router
 from backend.api.health import router as health_router
 from backend.api.models import router as models_router
+from backend.api.profile_chat import router as profile_chat_router
 from backend.api.setup import router as setup_router
 from backend.config import settings
 from backend.content.loader import load_content_packs
@@ -176,6 +177,7 @@ def create_app() -> FastAPI:
     app.include_router(models_router)
     app.include_router(setup_router)
     app.include_router(context_router)
+    app.include_router(profile_chat_router)
 
     # SPA static files (must be last — catches all non-API routes)
     # Mounted after frontend is built; in dev mode Vite handles this
