@@ -239,7 +239,7 @@ export function ChatResponse({ message, isLatest }: ChatResponseProps) {
         .msg-text-user {
           background: var(--bg-card);
           border: 1px solid var(--border);
-          border-radius: 10px 10px 2px 10px;
+          border-radius: 10px 2px 10px 10px;
           padding: 10px 16px;
           color: var(--text-bright);
         }

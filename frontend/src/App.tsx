@@ -141,8 +141,8 @@ export default function App() {
         </div>
         <button onClick={() => setPage("settings")} className="header-settings">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.2"/>
-            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            <path d="M6.86 1.58a1.18 1.18 0 012.28 0l.2.76a1.18 1.18 0 001.5.74l.72-.28a1.18 1.18 0 011.62 1.14l-.08.78a1.18 1.18 0 001.1 1.22l.78.06a1.18 1.18 0 01.56 2.2l-.64.44a1.18 1.18 0 00-.36 1.58l.4.66a1.18 1.18 0 01-.98 1.82l-.78-.02a1.18 1.18 0 00-1.16 1.04l-.14.76a1.18 1.18 0 01-2.16.68l-.48-.62a1.18 1.18 0 00-1.58-.24l-.62.46a1.18 1.18 0 01-1.88-.86l.04-.78a1.18 1.18 0 00-.98-1.24l-.76-.16a1.18 1.18 0 01-.44-2.22l.66-.42a1.18 1.18 0 00.44-1.56l-.36-.68a1.18 1.18 0 011.08-1.76l.78.06a1.18 1.18 0 001.22-1z" stroke="currentColor" strokeWidth="1.1"/>
+            <circle cx="8" cy="8" r="2.2" stroke="currentColor" strokeWidth="1.1"/>
           </svg>
         </button>
       </header>
