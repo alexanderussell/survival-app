@@ -5,10 +5,9 @@ import { Sidebar } from "./components/Sidebar";
 import { Setup } from "./pages/Setup";
 import { Settings } from "./pages/Settings";
 import { Profile } from "./pages/Profile";
-import { ContextSummary } from "./pages/ContextSummary";
 import { useChat } from "./hooks/useChat";
 
-type Page = "loading" | "setup" | "chat" | "settings" | "profile" | "context-summary";
+type Page = "loading" | "setup" | "chat" | "settings" | "profile";
 
 const SUGGESTED = [
   "How do I safely can tomatoes at home?",
@@ -55,13 +54,7 @@ export default function App() {
   if (page === "loading") return <LoadingScreen />;
   if (page === "setup") return <Setup onReady={() => setPage("chat")} />;
   if (page === "settings") return <Settings onBack={() => setPage("chat")} onProfile={() => setPage("profile")} />;
-  if (page === "profile") return <Profile onBack={() => setPage("settings")} />;
-  if (page === "context-summary") return (
-    <ContextSummary
-      onBack={() => setPage("chat")}
-      onRerun={() => { setPage("chat"); setTimeout(startProfileChat, 100); }}
-    />
-  );
+  if (page === "profile") return <Profile onBack={() => setPage("chat")} />;
 
   return (
     <div className="app-layout">
@@ -78,7 +71,7 @@ export default function App() {
         hasMessages={messages.length > 0}
         onNewChat={newChat}
         onOpenSidebar={() => setSidebarOpen(true)}
-        onProfile={() => { if (hasProfile) setPage("context-summary"); else startProfileChat(); }}
+        onProfile={() => setPage("profile")}
         onSettings={() => setPage("settings")}
       />
 
@@ -88,6 +81,7 @@ export default function App() {
             hasProfile={hasProfile}
             onSend={sendMessage}
             onProfileChat={startProfileChat}
+            onProfileForm={() => setPage("profile")}
           />
         ) : (
           <div className="messages-list">
@@ -193,11 +187,20 @@ function Header({ chatMode, hasProfile, hasMessages, onNewChat, onOpenSidebar, o
   );
 }
 
-function EmptyState({ hasProfile, onSend, onProfileChat }: {
+function EmptyState({ hasProfile, onSend, onProfileChat, onProfileForm }: {
   hasProfile: boolean;
   onSend: (text: string) => void;
   onProfileChat: () => void;
+  onProfileForm: () => void;
 }) {
+  const [canChat, setCanChat] = useState(false);
+  useEffect(() => {
+    // Check model size — conversational profile needs 7B+ (roughly 3GB+ file)
+    fetch("/api/health")
+      .then((r) => r.json())
+      .then((d) => setCanChat(d.model_size_gb != null && d.model_size_gb >= 3))
+      .catch(() => {});
+  }, []);
   return (
     <div className="empty-state">
       <div className="empty-icon">
@@ -217,7 +220,7 @@ function EmptyState({ hasProfile, onSend, onProfileChat }: {
       {!hasProfile && (
         <>
           <div className="context-divider" />
-          <button className="context-cta" onClick={onProfileChat}>
+          <button className="context-cta" onClick={canChat ? onProfileChat : onProfileForm}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
             </svg>
