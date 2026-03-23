@@ -61,6 +61,13 @@ class Database:
                 indexed_at TEXT NOT NULL
             )
         """)
+        await self.execute("""
+            CREATE TABLE IF NOT EXISTS user_profile (
+                key TEXT PRIMARY KEY DEFAULT 'default',
+                data TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
 
     async def integrity_check(self) -> bool:
         rows = await self.execute("PRAGMA integrity_check")

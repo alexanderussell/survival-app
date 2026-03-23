@@ -164,59 +164,6 @@ class LLMManager:
         self._model_name = model_name
         logger.info("Model loaded: %s", model_name)
 
-    async def generate(
-        self,
-        prompt: str,
-        max_tokens: int = 512,
-        temperature: float = 0.3,
-        stop: Optional[list[str]] = None,
-    ) -> AsyncGenerator[str, None]:
-        """Stream tokens from the LLM. Yields one token at a time.
-
-        Raises RuntimeError if no model is loaded.
-        Raises asyncio.QueueEmpty (effectively 503) if semaphore is held.
-        """
-        if not self._llm:
-            raise RuntimeError("No model loaded")
-
-        sem = self._get_semaphore()
-        if not sem.locked():
-            await asyncio.wait_for(sem.acquire(), timeout=0.1)
-        else:
-            raise RuntimeError("Model is busy processing another request")
-
-        try:
-            queue: asyncio.Queue[Optional[str]] = asyncio.Queue()
-            loop = asyncio.get_running_loop()
-            llm = self._llm
-
-            def _blocking_generate():
-                try:
-                    for chunk in llm(
-                        prompt,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                        stop=stop or [],
-                        stream=True,
-                    ):
-                        text = chunk["choices"][0]["text"]
-                        if text:
-                            asyncio.run_coroutine_threadsafe(
-                                queue.put(text), loop
-                            )
-                finally:
-                    asyncio.run_coroutine_threadsafe(queue.put(None), loop)
-
-            loop.run_in_executor(self._executor, _blocking_generate)
-
-            while True:
-                token = await queue.get()
-                if token is None:
-                    break
-                yield token
-        finally:
-            sem.release()
-
     async def chat(
         self,
         messages: list[dict],
@@ -282,12 +229,3 @@ class LLMManager:
         finally:
             cancelled = True
             sem.release()
-
-    async def unload(self) -> None:
-        """Unload the current model and free resources."""
-        if self._llm is not None:
-            # llama-cpp-python doesn't have an explicit close, but
-            # dereferencing allows GC to free the memory
-            self._llm = None
-            self._model_name = None
-            logger.info("Model unloaded")

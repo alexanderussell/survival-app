@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import logging
 import sqlite3
 import threading
@@ -51,7 +52,7 @@ class FullTextSearch:
                 conn.execute(
                     "INSERT INTO chunks_fts(rowid, chunk_id, text, source, section) VALUES (?, ?, ?, ?, ?)",
                     (
-                        hash(chunk["chunk_id"]) & 0x7FFFFFFFFFFFFFFF,  # Positive int64
+                        int(hashlib.sha256(chunk["chunk_id"].encode()).hexdigest()[:15], 16),  # Positive int64
                         chunk["chunk_id"],
                         chunk["text"],
                         chunk["source"],
@@ -138,6 +139,6 @@ class FullTextSearch:
     def delete_pack_chunks(self, chunk_ids: list[str]) -> None:
         conn = self._get_conn()
         for cid in chunk_ids:
-            rowid = hash(cid) & 0x7FFFFFFFFFFFFFFF
+            rowid = int(hashlib.sha256(cid.encode()).hexdigest()[:15], 16)
             conn.execute("DELETE FROM chunks_fts WHERE rowid = ?", (rowid,))
         conn.commit()

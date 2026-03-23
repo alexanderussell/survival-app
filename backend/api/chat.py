@@ -22,8 +22,7 @@ class ChatRequest(BaseModel):
     message: str = Field(..., max_length=2048)
 
 
-def _sse_event(event: str, **kwargs) -> dict:
-    return {"event": event, "data": json.dumps({"event": event, **kwargs})}
+from backend.api.sse import sse_event as _sse_event
 
 
 SYSTEM_PROMPT = (

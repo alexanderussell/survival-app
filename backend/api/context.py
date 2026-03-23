@@ -131,19 +131,8 @@ def profile_to_prompt_context(profile: UserProfile) -> str:
     return "## User Context\n\n" + "\n".join(f"- {p}" for p in parts)
 
 
-async def _ensure_table(db: Database):
-    await db.execute("""
-        CREATE TABLE IF NOT EXISTS user_profile (
-            key TEXT PRIMARY KEY DEFAULT 'default',
-            data TEXT NOT NULL,
-            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-        )
-    """)
-
-
 @router.get("/api/context/profile")
 async def get_profile(db: Database = Depends(get_database)):
-    await _ensure_table(db)
     rows = await db.execute(
         "SELECT data FROM user_profile WHERE key = 'default'"
     )
@@ -157,7 +146,6 @@ async def save_profile(
     profile: UserProfile,
     db: Database = Depends(get_database),
 ):
-    await _ensure_table(db)
     data = profile.model_dump(exclude_none=True)
     await db.execute(
         """INSERT OR REPLACE INTO user_profile (key, data, updated_at)
@@ -166,16 +154,3 @@ async def save_profile(
     )
     logger.info("User profile updated: %d fields", len(data))
     return {"status": "saved", "fields": len(data)}
-
-
-@router.get("/api/context/prompt")
-async def get_prompt_context(db: Database = Depends(get_database)):
-    """Preview the context block that gets injected into prompts."""
-    await _ensure_table(db)
-    rows = await db.execute(
-        "SELECT data FROM user_profile WHERE key = 'default'"
-    )
-    if rows:
-        profile = UserProfile(**json.loads(rows[0][0]))
-        return {"context": profile_to_prompt_context(profile)}
-    return {"context": ""}

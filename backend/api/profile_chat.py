@@ -49,8 +49,7 @@ class ProfileChatRequest(BaseModel):
     history: list[HistoryMessage] = Field(default_factory=list, max_length=20)
 
 
-def _sse_event(event: str, **kwargs) -> dict:
-    return {"event": event, "data": json.dumps({"event": event, **kwargs})}
+from backend.api.sse import sse_event as _sse_event
 
 
 def _extract_profile_json(text: str) -> dict | None:
@@ -108,9 +107,8 @@ async def _stream_profile_chat(
         if profile_data:
             # Validate through UserProfile schema before saving
             try:
-                from backend.api.context import UserProfile, _ensure_table
+                from backend.api.context import UserProfile
                 validated = UserProfile(**profile_data).model_dump(exclude_none=True)
-                await _ensure_table(db)
                 await db.execute(
                     """INSERT OR REPLACE INTO user_profile (key, data, updated_at)
                     VALUES ('default', ?, datetime('now'))""",

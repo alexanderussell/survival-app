@@ -1,6 +1,5 @@
 import json
 import logging
-import signal
 import sys
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone

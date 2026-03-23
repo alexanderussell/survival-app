@@ -9,7 +9,7 @@ import numpy as np
 from fastembed import TextEmbedding
 
 from backend.config import settings
-from backend.pipeline.types import ScoredChunk, SourceCitation
+from backend.pipeline.types import ScoredChunk
 from backend.rag.fulltext import FullTextSearch
 from backend.rag.vectorstore import VectorStore
 
@@ -158,20 +158,3 @@ class Retriever:
         grounded = best_dense >= min_score
 
         return chunks, round(confidence, 2), grounded
-
-    def get_sources(self, chunks: list[ScoredChunk]) -> list[SourceCitation]:
-        """Extract unique source citations from chunks."""
-        seen = set()
-        sources = []
-        for chunk in chunks:
-            key = (chunk.source, chunk.section)
-            if key not in seen:
-                seen.add(key)
-                sources.append(
-                    SourceCitation(
-                        source=chunk.source,
-                        section=chunk.section,
-                        score=chunk.score,
-                    )
-                )
-        return sources
